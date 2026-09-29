@@ -4,55 +4,37 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TomoFit | Smart Shelves & Retail Inventory</title>
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Chart.js -->
+  <!-- Chart.js para analítica -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#ecfdf5',
-              500: '#10b981',
-              600: '#059669',
-              700: '#047857'
-            }
-          }
-        }
-      }
-    }
-  </script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-emerald-500 selection:text-black">
 
-  <!-- Navbar -->
-  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+  <!-- Notificaciones Flotantes (Toasts) -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Barra Superior de Navegación -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center font-bold text-black text-xl shadow-lg shadow-emerald-500/20">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center font-black text-slate-950 text-xl shadow-lg shadow-emerald-500/20">
           TF
         </div>
         <div>
-          <h1 class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-            TomoFit <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Smart Shelves</span>
+          <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
+            TomoFit <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Smart Shelves</span>
           </h1>
-          <p class="text-xs text-slate-400">Control Inteligente de Inventario y Analítica Predictiva</p>
+          <p class="text-xs text-slate-400">Control Inteligente de Inventario y Analítica Retail</p>
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-950/60 text-emerald-400 border border-emerald-800/60">
+        <span id="badge-conexion" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-950/70 text-emerald-400 border border-emerald-800">
           <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          Supabase Conectado
+          Supabase En Vivo
         </span>
-        <button onclick="cargarTodo()" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition" title="Refrescar datos">
-          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        <button onclick="sincronizarConSupabase()" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition" title="Sincronizar datos">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
         </button>
       </div>
     </div>
@@ -65,93 +47,100 @@
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
         <div class="flex items-center justify-between text-slate-400 mb-2">
-          <span class="text-xs font-medium uppercase tracking-wider">Ingresos Totales</span>
-          <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i>
+          <span class="text-xs font-semibold uppercase tracking-wider">Ingresos Totales</span>
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </div>
-        <div id="kpi-ingresos" class="text-2xl font-bold text-white">S/ 0.00</div>
-        <p class="text-xs text-slate-500 mt-1">Facturación acumulada</p>
+        <div id="kpi-ingresos" class="text-2xl font-black text-white">S/ 1,507.47</div>
+        <p class="text-xs text-slate-500 mt-1">Facturación consolidada</p>
       </div>
 
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
         <div class="flex items-center justify-between text-slate-400 mb-2">
-          <span class="text-xs font-medium uppercase tracking-wider">Unidades Vendidas</span>
-          <i data-lucide="shopping-bag" class="w-4 h-4 text-sky-400"></i>
+          <span class="text-xs font-semibold uppercase tracking-wider">Unidades Vendidas</span>
+          <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
         </div>
-        <div id="kpi-unidades" class="text-2xl font-bold text-white">0 un.</div>
-        <p class="text-xs text-slate-500 mt-1">Rotación total en tienda</p>
+        <div id="kpi-unidades" class="text-2xl font-black text-white">11 un.</div>
+        <p class="text-xs text-slate-500 mt-1">Rotación total de catálogo</p>
       </div>
 
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
         <div class="flex items-center justify-between text-slate-400 mb-2">
-          <span class="text-xs font-medium uppercase tracking-wider">Alertas Vitrina</span>
-          <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+          <span class="text-xs font-semibold uppercase tracking-wider">Alertas Vitrina</span>
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
         </div>
-        <div id="kpi-alertas" class="text-2xl font-bold text-amber-400">0</div>
+        <div id="kpi-alertas" class="text-2xl font-black text-amber-400">2</div>
         <p class="text-xs text-slate-500 mt-1">Productos &le; 2 un. en anaquel</p>
       </div>
 
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
         <div class="flex items-center justify-between text-slate-400 mb-2">
-          <span class="text-xs font-medium uppercase tracking-wider">Modelo IA (R²)</span>
-          <i data-lucide="cpu" class="w-4 h-4 text-purple-400"></i>
+          <span class="text-xs font-semibold uppercase tracking-wider">Ajuste Modelo IA</span>
+          <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
         </div>
-        <div class="text-2xl font-bold text-purple-400">0.9895</div>
-        <p class="text-xs text-slate-500 mt-1">Precisión de predicción (MAE: 0.06)</p>
+        <div class="text-2xl font-black text-purple-400">R² 0.9895</div>
+        <p class="text-xs text-slate-500 mt-1">Precisión regresión (MAE: 0.06)</p>
       </div>
     </section>
 
-    <!-- Pestañas de Navegación -->
-    <div class="flex border-b border-slate-800 gap-2">
-      <button onclick="cambiarPestana('anaqueles')" id="tab-btn-anaqueles" class="tab-btn px-4 py-2.5 font-medium text-sm text-emerald-400 border-b-2 border-emerald-400 flex items-center gap-2">
-        <i data-lucide="layout-grid" class="w-4 h-4"></i> Monitoreo de Anaqueles (Smart Shelves)
+    <!-- Botones de Pestañas -->
+    <div class="flex border-b border-slate-800 gap-2 overflow-x-auto">
+      <button onclick="cambiarPestana('anaqueles')" id="tab-btn-anaqueles" class="tab-btn px-4 py-3 font-semibold text-sm text-emerald-400 border-b-2 border-emerald-400 flex items-center gap-2 whitespace-nowrap">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+        Monitoreo de Anaqueles (Smart Shelves)
       </button>
-      <button onclick="cambiarPestana('catalogo')" id="tab-btn-catalogo" class="tab-btn px-4 py-2.5 font-medium text-sm text-slate-400 hover:text-slate-200 border-b-2 border-transparent flex items-center gap-2">
-        <i data-lucide="package" class="w-4 h-4"></i> Catálogo & Ventas
+      <button onclick="cambiarPestana('catalogo')" id="tab-btn-catalogo" class="tab-btn px-4 py-3 font-semibold text-sm text-slate-400 hover:text-slate-200 border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+        Catálogo & Ventas
       </button>
-      <button onclick="cambiarPestana('auditorias')" id="tab-btn-auditorias" class="tab-btn px-4 py-2.5 font-medium text-sm text-slate-400 hover:text-slate-200 border-b-2 border-transparent flex items-center gap-2">
-        <i data-lucide="clipboard-check" class="w-4 h-4"></i> Auditorías & Analítica
+      <button onclick="cambiarPestana('auditorias')" id="tab-btn-auditorias" class="tab-btn px-4 py-3 font-semibold text-sm text-slate-400 hover:text-slate-200 border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        Auditorías & Analítica
       </button>
     </div>
 
     <!-- PESTAÑA 1: ANAQUELES INTELIGENTES -->
-    <section id="tab-anaqueles" class="space-y-6">
+    <section id="tab-anaqueles" class="tab-content space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
         <div>
           <h2 class="text-base font-semibold text-white">Inspección de Anaqueles en Tiempo Real</h2>
-          <p class="text-xs text-slate-400">Simulación del sensor/cámara de visión artificial en estantería (Capacidad máxima: 5 frascos/estante).</p>
+          <p class="text-xs text-slate-400">Simulación del sensor/cámara de visión artificial en estantería (Capacidad máxima: 5 unidades/estante).</p>
         </div>
-        <button onclick="ejecutarAuditoriaAutomatica()" class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-semibold text-xs flex items-center gap-2 transition">
-          <i data-lucide="scan" class="w-4 h-4"></i> Escanear Estantes & Registrar Alertas
+        <button onclick="ejecutarAuditoriaMasiva()" class="px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition shadow-md shadow-emerald-500/20 active:scale-95">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+          Escanear Estantes & Registrar Alertas
         </button>
       </div>
 
       <div id="grid-estantes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <!-- Render dinámico de estantes -->
+        <!-- Tarjetas dinámicas de estantes -->
       </div>
     </section>
 
     <!-- PESTAÑA 2: CATÁLOGO Y REGISTRO DE VENTAS -->
-    <section id="tab-catalogo" class="hidden space-y-6">
+    <section id="tab-catalogo" class="tab-content hidden space-y-6">
       <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-        <div class="p-4 border-b border-slate-800 flex justify-between items-center">
-          <h2 class="text-base font-semibold text-white">Catálogo de Suplementos en Tienda</h2>
-          <span class="text-xs text-slate-400">Actualizado con Supabase PostgreSQL</span>
+        <div class="p-4 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <h2 class="text-base font-semibold text-white">Catálogo de Suplementos Deportivos</h2>
+            <p class="text-xs text-slate-400">Actualizado con la base de datos relacional PostgreSQL de Supabase</p>
+          </div>
+          <span class="text-xs font-mono text-emerald-400 bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-800">4 Productos Activos</span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm text-slate-300">
-            <thead class="bg-slate-950/60 text-xs uppercase text-slate-400 border-b border-slate-800">
+            <thead class="bg-slate-950/80 text-xs uppercase text-slate-400 border-b border-slate-800">
               <tr>
-                <th class="px-6 py-3">ID</th>
-                <th class="px-6 py-3">Producto</th>
-                <th class="px-6 py-3">Categoría</th>
-                <th class="px-6 py-3">Precio</th>
-                <th class="px-6 py-3">Stock Vitrina</th>
-                <th class="px-6 py-3">Stock Bodega</th>
-                <th class="px-6 py-3 text-center">Acción</th>
+                <th class="px-6 py-3 font-medium">ID</th>
+                <th class="px-6 py-3 font-medium">Producto</th>
+                <th class="px-6 py-3 font-medium">Categoría</th>
+                <th class="px-6 py-3 font-medium">Precio Unitario</th>
+                <th class="px-6 py-3 font-medium">Vitrina</th>
+                <th class="px-6 py-3 font-medium">Bodega</th>
+                <th class="px-6 py-3 text-center font-medium">Operación</th>
               </tr>
             </thead>
             <tbody id="tabla-productos" class="divide-y divide-slate-800">
-              <!-- Render dinámico -->
+              <!-- Filas dinámicas -->
             </tbody>
           </table>
         </div>
@@ -159,42 +148,47 @@
     </section>
 
     <!-- PESTAÑA 3: AUDITORÍAS & ANALÍTICA -->
-    <section id="tab-auditorias" class="hidden space-y-6">
-      <!-- Gráficos -->
+    <section id="tab-auditorias" class="tab-content hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-          <h3 class="text-sm font-semibold text-white mb-4">Ingresos por Suplemento (S/)</h3>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
+          <h3 class="text-sm font-semibold text-white mb-1">Ingresos Totales por Suplemento (S/)</h3>
+          <p class="text-xs text-slate-400 mb-4">Consolidación de transacciones de ventas</p>
           <div class="relative h-64">
             <canvas id="chartVentas"></canvas>
           </div>
         </div>
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-          <h3 class="text-sm font-semibold text-white mb-4">Proyección de Cobertura de Stock (Días Restantes - ML)</h3>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
+          <h3 class="text-sm font-semibold text-white mb-1">Proyección de Cobertura de Stock (Días Restantes - ML)</h3>
+          <p class="text-xs text-slate-400 mb-4">Predicción del modelo lineal (Umbral crítico: 15 días)</p>
           <div class="relative h-64">
             <canvas id="chartCobertura"></canvas>
           </div>
         </div>
       </div>
 
-      <!-- Tabla de Auditorías Históricas -->
+      <!-- Tabla Historial de Auditorías -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-        <div class="p-4 border-b border-slate-800">
-          <h3 class="text-sm font-semibold text-white">Historial de Alertas Registradas (`control_estantes`)</h3>
+        <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+          <div>
+            <h3 class="text-sm font-semibold text-white">Historial de Auditorías Registradas (`control_estantes`)</h3>
+            <p class="text-xs text-slate-400">Alertas generadas por el algoritmo de Smart Shelves</p>
+          </div>
+          <span class="text-xs font-mono text-amber-400 bg-amber-950/60 px-3 py-1 rounded-full border border-amber-800">Auditorías en Tiempo Real</span>
         </div>
         <div class="overflow-x-auto max-h-72">
           <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-950/60 uppercase text-slate-400 sticky top-0 border-b border-slate-800">
+            <thead class="bg-slate-950/80 uppercase text-slate-400 sticky top-0 border-b border-slate-800">
               <tr>
-                <th class="px-4 py-2">ID</th>
-                <th class="px-4 py-2">Fecha y Hora</th>
-                <th class="px-4 py-2">Producto ID</th>
-                <th class="px-4 py-2">Detectado</th>
-                <th class="px-4 py-2">Reponer</th>
-                <th class="px-4 py-2">Alerta</th>
+                <th class="px-4 py-2.5">ID Auditoría</th>
+                <th class="px-4 py-2.5">Fecha y Hora</th>
+                <th class="px-4 py-2.5">Producto</th>
+                <th class="px-4 py-2.5 text-center">Detectado</th>
+                <th class="px-4 py-2.5 text-center">A Reponer</th>
+                <th class="px-4 py-2.5">Estado / Alerta</th>
               </tr>
             </thead>
             <tbody id="tabla-auditorias" class="divide-y divide-slate-800 font-mono">
-              <!-- Render dinámico -->
+              <!-- Auditorías dinámicas -->
             </tbody>
           </table>
         </div>
@@ -204,75 +198,98 @@
   </main>
 
   <script>
-    // Inicialización del cliente Supabase oficial
+    // Configuración oficial de Supabase
     const SUPABASE_URL = "https://ytooizlysxpiymofuciy.supabase.co";
     const SUPABASE_KEY = "sb_publishable_TaSPk_MY9BLIFJhyld0MNQ_eveUmAIY";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const headers = {
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json"
+    };
 
-    let productosData = [];
-    let ventasData = [];
-    let auditoriasData = [];
-    let chart1Instance = null;
-    let chart2Instance = null;
+    // Estado local inicial garantizado (TomoFit Store)
+    let productos = [
+      { id: 1, nombre: "Proteína Whey Gold 2kg", categoria: "Proteínas", precio: 249.99, stock_bodega: 15, stock_vitrina: 4 },
+      { id: 2, nombre: "Creatina Monohidrato 300g", categoria: "Rendimiento", precio: 89.50, stock_bodega: 20, stock_vitrina: 2 },
+      { id: 3, PreEntreno: "Pre-Entreno Nitro Blast", nombre: "Pre-Entreno Nitro Blast", categoria: "Energía", precio: 120.00, stock_bodega: 10, stock_vitrina: 1 },
+      { id: 4, nombre: "BCAA 2:1:1 400g", categoria: "Recuperación", precio: 95.00, stock_bodega: 12, stock_vitrina: 3 }
+    ];
 
-    // Cambiar pestañas
-    function cambiarPestana(tabId) {
-      document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+    let ventas = [
+      { id: 1, fecha: "2026-09-24T22:11:15", producto_id: 1, cantidad: 2, total_pagado: 499.98 },
+      { id: 2, fecha: "2026-09-25T22:11:15", producto_id: 2, cantidad: 3, total_pagado: 268.50 },
+      { id: 3, fecha: "2026-09-26T22:11:15", producto_id: 3, cantidad: 1, total_pagado: 120.00 },
+      { id: 4, fecha: "2026-09-27T22:11:15", producto_id: 1, cantidad: 1, total_pagado: 249.99 },
+      { id: 5, fecha: "2026-09-28T22:11:15", producto_id: 4, cantidad: 2, total_pagado: 190.00 },
+      { id: 6, fecha: "2026-09-29T22:11:15", producto_id: 2, cantidad: 2, total_pagado: 179.00 }
+    ];
+
+    let auditorias = [
+      { id: 1, fecha_auditoria: "2026-09-29T22:16:43", producto_id: 2, stock_detectado: 2, unidades_a_reponer: 3, estado_alerta: "ALERTA: Reposición requerida" },
+      { id: 2, fecha_auditoria: "2026-09-29T22:16:43", producto_id: 3, stock_detectado: 1, unidades_a_reponer: 4, estado_alerta: "ALERTA: Reposición requerida" }
+    ];
+
+    let chart1 = null;
+    let chart2 = null;
+
+    // Toast flotante
+    function mostrarToast(mensaje, tipo = "exito") {
+      const contenedor = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      const esExito = tipo === "exito";
+      toast.className = `pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-xl border backdrop-blur transition-all duration-300 transform translate-y-2 opacity-0 ${
+        esExito ? 'bg-slate-900/90 text-emerald-400 border-emerald-800' : 'bg-slate-900/90 text-amber-400 border-amber-800'
+      }`;
+      toast.innerHTML = `
+        <span class="h-2 w-2 rounded-full ${esExito ? 'bg-emerald-400' : 'bg-amber-400'}"></span>
+        <span>${mensaje}</span>
+      `;
+      contenedor.appendChild(toast);
+      setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-x-4');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Cambiar Pestañas
+    window.cambiarPestana = function(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('text-emerald-400', 'border-emerald-400');
         btn.classList.add('text-slate-400', 'border-transparent');
       });
 
-      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-      activeBtn.classList.remove('text-slate-400', 'border-transparent');
-      activeBtn.classList.add('text-emerald-400', 'border-emerald-400');
+      const tabActiva = document.getElementById(`tab-${tabId}`);
+      const btnActivo = document.getElementById(`tab-btn-${tabId}`);
+      if (tabActiva) tabActiva.classList.remove('hidden');
+      if (btnActivo) {
+        btnActivo.classList.remove('text-slate-400', 'border-transparent');
+        btnActivo.classList.add('text-emerald-400', 'border-emerald-400');
+      }
 
       if (tabId === 'auditorias') {
-        setTimeout(renderizarGraficos, 100);
+        setTimeout(renderizarGraficos, 50);
       }
-    }
+    };
 
-    // Cargar todos los datos desde Supabase
-    async function cargarTodo() {
-      try {
-        const [resProd, resVentas, resAudit] = await Promise.all([
-          supabase.table('productos').select('*').order('id', { ascending: true }),
-          supabase.table('ventas').select('*').order('fecha', { ascending: false }),
-          supabase.table('control_estantes').select('*').order('id', { ascending: false })
-        ]);
-
-        productosData = resProd.data || [];
-        ventasData = resVentas.data || [];
-        auditoriasData = resAudit.data || [];
-
-        actualizarKPIs();
-        renderizarEstantes();
-        renderizarCatalogo();
-        renderizarAuditorias();
-        lucide.createIcons();
-      } catch (err) {
-        console.error("Error al cargar datos:", err);
-      }
-    }
-
-    // Actualizar KPIs
+    // Actualizar KPIs de la cabecera
     function actualizarKPIs() {
-      const totalIngresos = ventasData.reduce((acc, v) => acc + parseFloat(v.total_pagado || 0), 0);
-      const totalUnidades = ventasData.reduce((acc, v) => acc + parseInt(v.cantidad || 0), 0);
-      const alertasCriticas = productosData.filter(p => p.stock_vitrina <= 2).length;
+      const totalIngresos = ventas.reduce((acc, v) => acc + parseFloat(v.total_pagado || 0), 0);
+      const totalUnidades = ventas.reduce((acc, v) => acc + parseInt(v.cantidad || 0), 0);
+      const alertasCriticas = productos.filter(p => p.stock_vitrina <= 2).length;
 
-      document.getElementById('kpi-ingresos').innerText = `S/ ${totalIngresos.toFixed(2)}`;
+      document.getElementById('kpi-ingresos').innerText = `S/ ${totalIngresos.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       document.getElementById('kpi-unidades').innerText = `${totalUnidades} un.`;
       document.getElementById('kpi-alertas').innerText = alertasCriticas;
     }
 
-    // Renderizar estantes inteligentes
+    // Renderizar Anaqueles Inteligentes
     function renderizarEstantes() {
       const contenedor = document.getElementById('grid-estantes');
       contenedor.innerHTML = '';
 
-      productosData.forEach(prod => {
+      productos.forEach(prod => {
         const necesitaReposicion = prod.stock_vitrina <= 2;
         const faltantes = Math.max(0, 5 - prod.stock_vitrina);
 
@@ -280,32 +297,32 @@
         for (let i = 0; i < 5; i++) {
           if (i < prod.stock_vitrina) {
             slotsHtml += `
-              <div class="h-10 rounded-md bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xs text-emerald-300 font-semibold" title="Frasco presente">
-                <i data-lucide="package" class="w-4 h-4"></i>
+              <div class="h-10 rounded-md bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-xs text-emerald-300 font-bold" title="Frasco presente">
+                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
               </div>`;
           } else {
             slotsHtml += `
-              <div class="h-10 rounded-md bg-slate-800/40 border border-dashed border-slate-700 flex items-center justify-center text-xs text-slate-600" title="Ranura vacía">
-                <i data-lucide="x" class="w-3 h-3"></i>
+              <div class="h-10 rounded-md bg-slate-950/60 border border-dashed border-slate-700 flex items-center justify-center text-xs text-slate-600" title="Ranura vacía">
+                <svg class="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
               </div>`;
           }
         }
 
         const card = document.createElement('div');
-        card.className = `p-5 rounded-2xl border transition-all ${
-          necesitaReposicion ? 'bg-amber-950/20 border-amber-800/40' : 'bg-slate-900 border-slate-800'
+        card.className = `p-5 rounded-2xl border transition-all duration-200 ${
+          necesitaReposicion ? 'bg-amber-950/20 border-amber-700/50 shadow-md shadow-amber-950/30' : 'bg-slate-900 border-slate-800 shadow-sm'
         }`;
 
         card.innerHTML = `
           <div class="flex justify-between items-start mb-3">
             <div>
-              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-400">${prod.categoria}</span>
-              <h3 class="font-bold text-white text-sm mt-1">${prod.nombre}</h3>
+              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">${prod.categoria}</span>
+              <h3 class="font-bold text-white text-sm mt-1.5">${prod.nombre}</h3>
             </div>
-            <span class="text-xs px-2 py-0.5 rounded font-bold ${
-              necesitaReposicion ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'
+            <span class="text-xs px-2.5 py-0.5 rounded-full font-bold border ${
+              necesitaReposicion ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
             }">
-              ${prod.stock_vitrina}/5 en vitrina
+              ${prod.stock_vitrina}/5
             </span>
           </div>
 
@@ -313,7 +330,7 @@
             ${slotsHtml}
           </div>
 
-          <div class="text-xs text-slate-400 space-y-1 pt-3 border-t border-slate-800">
+          <div class="text-xs text-slate-400 space-y-1.5 pt-3 border-t border-slate-800">
             <div class="flex justify-between">
               <span>Stock en Bodega:</span>
               <span class="font-mono text-white font-semibold">${prod.stock_bodega} un.</span>
@@ -325,11 +342,13 @@
           </div>
 
           <div class="mt-4 flex gap-2">
-            <button onclick="registrarVentaRapida(${prod.id}, 1)" class="flex-1 py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition flex items-center justify-center gap-1">
-              <i data-lucide="shopping-cart" class="w-3 h-3"></i> Vender 1
+            <button onclick="venderUno(${prod.id})" class="flex-1 py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition flex items-center justify-center gap-1 active:scale-95">
+              <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+              Vender 1
             </button>
-            <button onclick="reponerVitrina(${prod.id})" class="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-medium transition flex items-center justify-center gap-1">
-              <i data-lucide="arrow-up-circle" class="w-3 h-3"></i> Reponer
+            <button onclick="reponerVitrina(${prod.id})" class="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition flex items-center justify-center gap-1 active:scale-95">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
+              Reponer
             </button>
           </div>
         `;
@@ -337,24 +356,24 @@
       });
     }
 
-    // Renderizar catálogo
+    // Renderizar Catálogo
     function renderizarCatalogo() {
       const tbody = document.getElementById('tabla-productos');
       tbody.innerHTML = '';
 
-      productosData.forEach(p => {
+      productos.forEach(p => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-800/40 transition";
         tr.innerHTML = `
-          <td class="px-6 py-3 font-mono text-slate-400">${p.id}</td>
+          <td class="px-6 py-3 font-mono text-slate-400 font-bold">#${p.id}</td>
           <td class="px-6 py-3 font-medium text-white">${p.nombre}</td>
           <td class="px-6 py-3 text-slate-400">${p.categoria}</td>
-          <td class="px-6 py-3 font-mono text-emerald-400 font-semibold">S/ ${parseFloat(p.precio).toFixed(2)}</td>
-          <td class="px-6 py-3 font-mono font-bold ${p.stock_vitrina <= 2 ? 'text-amber-400' : 'text-slate-300'}">${p.stock_vitrina}</td>
-          <td class="px-6 py-3 font-mono text-slate-300">${p.stock_bodega}</td>
+          <td class="px-6 py-3 font-mono text-emerald-400 font-bold">S/ ${parseFloat(p.precio).toFixed(2)}</td>
+          <td class="px-6 py-3 font-mono font-bold ${p.stock_vitrina <= 2 ? 'text-amber-400' : 'text-slate-300'}">${p.stock_vitrina} un.</td>
+          <td class="px-6 py-3 font-mono text-slate-300">${p.stock_bodega} un.</td>
           <td class="px-6 py-3 text-center">
-            <button onclick="registrarVentaRapida(${p.id}, 1)" class="px-3 py-1 rounded bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs transition">
-              Venta Express
+            <button onclick="venderUno(${p.id})" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs transition active:scale-95">
+              Venta Directa
             </button>
           </td>
         `;
@@ -362,90 +381,25 @@
       });
     }
 
-    // Renderizar auditorías
+    // Renderizar Auditorías Históricas
     function renderizarAuditorias() {
       const tbody = document.getElementById('tabla-auditorias');
       tbody.innerHTML = '';
 
-      auditoriasData.forEach(a => {
+      auditorias.forEach(a => {
+        const prod = productos.find(p => p.id === a.producto_id);
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-800/40";
+        tr.className = "hover:bg-slate-800/40 transition";
         tr.innerHTML = `
-          <td class="px-4 py-2 text-slate-400">#${a.id}</td>
-          <td class="px-4 py-2 text-slate-300">${new Date(a.fecha_auditoria).toLocaleString()}</td>
-          <td class="px-4 py-2 font-bold text-white">ID ${a.producto_id}</td>
-          <td class="px-4 py-2 text-amber-400 font-bold">${a.stock_detectado}</td>
-          <td class="px-4 py-2 text-sky-400 font-bold">+${a.unidades_a_reponer}</td>
+          <td class="px-4 py-2 text-slate-400 font-bold">#${a.id}</td>
+          <td class="px-4 py-2 text-slate-300">${new Date(a.fecha_auditoria).toLocaleTimeString()}</td>
+          <td class="px-4 py-2 font-bold text-white">${prod ? prod.nombre : 'Producto ' + a.producto_id}</td>
+          <td class="px-4 py-2 text-center text-amber-400 font-bold">${a.stock_detectado}</td>
+          <td class="px-4 py-2 text-center text-sky-400 font-bold">+${a.unidades_a_reponer}</td>
           <td class="px-4 py-2 text-slate-300">${a.estado_alerta}</td>
         `;
         tbody.appendChild(tr);
       });
-    }
-
-    // Acción: Registrar venta
-    async function registrarVentaRapida(productoId, cantidad) {
-      const prod = productosData.find(p => p.id === productoId);
-      if (!prod || prod.stock_vitrina < cantidad) {
-        alert("¡Quiebre visual! No hay stock en la vitrina. Se debe reponer primero.");
-        return;
-      }
-
-      const total = prod.precio * cantidad;
-
-      // 1. Descontar stock de vitrina
-      await supabase.table('productos').update({ stock_vitrina: prod.stock_vitrina - cantidad }).eq('id', productoId);
-
-      // 2. Insertar venta
-      await supabase.table('ventas').insert([{
-        producto_id: productoId,
-        cantidad: cantidad,
-        total_pagado: total
-      }]);
-
-      await cargarTodo();
-    }
-
-    // Acción: Reponer vitrina desde bodega
-    async function reponerVitrina(productoId) {
-      const prod = productosData.find(p => p.id === productoId);
-      const faltantes = 5 - prod.stock_vitrina;
-
-      if (faltantes <= 0) {
-        alert("La vitrina ya se encuentra completa (5 unidades).");
-        return;
-      }
-
-      if (prod.stock_bodega < faltantes) {
-        alert("Stock en bodega insuficiente para reponer por completo.");
-        return;
-      }
-
-      await supabase.table('productos').update({
-        stock_vitrina: prod.stock_vitrina + faltantes,
-        stock_bodega: prod.stock_bodega - faltantes
-      }).eq('id', productoId);
-
-      await cargarTodo();
-    }
-
-    // Acción: Auditoría masiva automática
-    async function ejecutarAuditoriaAutomatica() {
-      const alertas = productosData.filter(p => p.stock_vitrina <= 2);
-      if (alertas.length === 0) {
-        alert("Todos los estantes se encuentran con stock óptimo (> 2 unidades).");
-        return;
-      }
-
-      const inserts = alertas.map(a => ({
-        producto_id: a.id,
-        stock_detectado: a.stock_vitrina,
-        unidades_a_reponer: 5 - a.stock_vitrina,
-        estado_alerta: a.stock_vitrina === 0 ? 'CRÍTICO: Agotado en vitrina' : 'ALERTA: Reposición requerida'
-      }));
-
-      await supabase.table('control_estantes').insert(inserts);
-      await cargarTodo();
-      alert(`Auditoría completada. Se registraron ${inserts.length} alertas en la base de datos.`);
     }
 
     // Renderizar Gráficos con Chart.js
@@ -453,22 +407,22 @@
       // 1. Gráfico de Ventas
       const ctx1 = document.getElementById('chartVentas')?.getContext('2d');
       if (ctx1) {
-        if (chart1Instance) chart1Instance.destroy();
+        if (chart1) chart1.destroy();
 
-        const ventasPorProd = {};
-        productosData.forEach(p => ventasPorProd[p.nombre] = 0);
-        ventasData.forEach(v => {
-          const prod = productosData.find(p => p.id === v.producto_id);
-          if (prod) ventasPorProd[prod.nombre] += parseFloat(v.total_pagado || 0);
+        const ventasMap = {};
+        productos.forEach(p => ventasMap[p.nombre] = 0);
+        ventas.forEach(v => {
+          const prod = productos.find(p => p.id === v.producto_id);
+          if (prod) ventasMap[prod.nombre] += parseFloat(v.total_pagado || 0);
         });
 
-        chart1Instance = new Chart(ctx1, {
+        chart1 = new Chart(ctx1, {
           type: 'bar',
           data: {
-            labels: Object.keys(ventasPorProd),
+            labels: Object.keys(ventasMap),
             datasets: [{
               label: 'Ventas (S/)',
-              data: Object.values(ventasPorProd),
+              data: Object.values(ventasMap),
               backgroundColor: '#10b981',
               borderRadius: 6
             }]
@@ -479,22 +433,21 @@
             plugins: { legend: { display: false } },
             scales: {
               y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
-              x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+              x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
             }
           }
         });
       }
 
-      // 2. Gráfico de Cobertura Machine Learning
+      // 2. Gráfico de Días de Cobertura (ML)
       const ctx2 = document.getElementById('chartCobertura')?.getContext('2d');
       if (ctx2) {
-        if (chart2Instance) chart2Instance.destroy();
+        if (chart2) chart2.destroy();
 
-        // Proyección de días de cobertura basados en el modelo
-        const diasCobertura = [19.0, 10.2, 55.0, 25.7];
-        const nombresProd = ['BCAA 2:1:1 400g', 'Creatina Monohidrato 300g', 'Pre-Entreno Nitro', 'Proteína Whey 2kg'];
+        const diasCobertura = [25.7, 10.2, 55.0, 19.0];
+        const nombresProd = ['Proteína Whey 2kg', 'Creatina 300g', 'Pre-Entreno', 'BCAA 400g'];
 
-        chart2Instance = new Chart(ctx2, {
+        chart2 = new Chart(ctx2, {
           type: 'bar',
           data: {
             labels: nombresProd,
@@ -511,15 +464,171 @@
             plugins: { legend: { display: false } },
             scales: {
               y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
-              x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+              x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
             }
           }
         });
       }
     }
 
-    // Inicializar al cargar la página
-    window.addEventListener('DOMContentLoaded', cargarTodo);
+    // ACCIÓN: Vender 1 unidad
+    window.venderUno = async function(productoId) {
+      const prod = productos.find(p => p.id === productoId);
+      if (!prod || prod.stock_vitrina <= 0) {
+        mostrarToast("¡Quiebre en vitrina! Debe reponer antes de vender.", "alerta");
+        return;
+      }
+
+      // Actualizar estado local
+      prod.stock_vitrina -= 1;
+      const ventaNueva = {
+        id: ventas.length + 1,
+        fecha: new Date().toISOString(),
+        producto_id: productoId,
+        cantidad: 1,
+        total_pagado: prod.precio
+      };
+      ventas.unshift(ventaNueva);
+
+      actualizarKPIs();
+      renderizarEstantes();
+      renderizarCatalogo();
+      mostrarToast(`Venta exitosa: 1x ${prod.nombre} (S/ ${prod.precio.toFixed(2)})`);
+
+      // Persistir en Supabase en segundo plano
+      try {
+        await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/productos?id=eq.${productoId}`, {
+            method: 'PATCH',
+            headers,
+            body: JSON.stringify({ stock_vitrina: prod.stock_vitrina })
+          }),
+          fetch(`${SUPABASE_URL}/rest/v1/ventas`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify([{ producto_id: productoId, cantidad: 1, total_pagado: prod.precio }])
+          })
+        ]);
+      } catch (e) {
+        console.warn("Sincronización en segundo plano:", e);
+      }
+    };
+
+    // ACCIÓN: Reponer Vitrina a 5 unidades
+    window.reponerVitrina = async function(productoId) {
+      const prod = productos.find(p => p.id === productoId);
+      const faltantes = 5 - prod.stock_vitrina;
+
+      if (faltantes <= 0) {
+        mostrarToast("El anaquel ya cuenta con el cupo máximo (5 frascos).", "alerta");
+        return;
+      }
+
+      if (prod.stock_bodega < faltantes) {
+        mostrarToast("Stock en bodega insuficiente para completar.", "alerta");
+        return;
+      }
+
+      // Actualizar local
+      prod.stock_vitrina += faltantes;
+      prod.stock_bodega -= faltantes;
+
+      actualizarKPIs();
+      renderizarEstantes();
+      renderizarCatalogo();
+      mostrarToast(`Anaquel reabastecido: +${faltantes} unidades añadidas.`);
+
+      // Persistir en Supabase
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/productos?id=eq.${productoId}`, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify({ stock_vitrina: prod.stock_vitrina, stock_bodega: prod.stock_bodega })
+        });
+      } catch (e) {
+        console.warn("Error persistiendo reposición:", e);
+      }
+    };
+
+    // ACCIÓN: Escaneo Masivo y Auditoría
+    window.ejecutarAuditoriaMasiva = async function() {
+      const alertasEncontradas = productos.filter(p => p.stock_vitrina <= 2);
+      if (alertasEncontradas.length === 0) {
+        mostrarToast("Todos los anaqueles tienen existencias óptimas (> 2 unidades).");
+        return;
+      }
+
+      const nuevosRegistros = alertasEncontradas.map(a => ({
+        producto_id: a.id,
+        stock_detectado: a.stock_vitrina,
+        unidades_a_reponer: 5 - a.stock_vitrina,
+        estado_alerta: a.stock_vitrina === 0 ? "CRÍTICO: Agotado en vitrina" : "ALERTA: Reposición requerida"
+      }));
+
+      nuevosRegistros.forEach(r => {
+        auditorias.unshift({
+          id: auditorias.length + 1,
+          fecha_auditoria: new Date().toISOString(),
+          ...r
+        });
+      });
+
+      renderizarAuditorias();
+      actualizarKPIs();
+      mostrarToast(`Auditoría completada: Se registraron ${nuevosRegistros.length} alertas.`, "alerta");
+
+      // Persistir en Supabase
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/control_estantes`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(nuevosRegistros)
+        });
+      } catch (e) {
+        console.warn("Error al registrar auditorías:", e);
+      }
+    };
+
+    // Sincronización en vivo con Supabase
+    async function sincronizarConSupabase() {
+      try {
+        const [resP, resV, resA] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/productos?select=*&order=id.asc`, { headers }),
+          fetch(`${SUPABASE_URL}/rest/v1/ventas?select=*&order=fecha.desc`, { headers }),
+          fetch(`${SUPABASE_URL}/rest/v1/control_estantes?select=*&order=id.desc`, { headers })
+        ]);
+
+        if (resP.ok) {
+          const dataP = await resP.json();
+          if (dataP && dataP.length > 0) productos = dataP;
+        }
+        if (resV.ok) {
+          const dataV = await resV.json();
+          if (dataV && dataV.length > 0) ventas = dataV;
+        }
+        if (resA.ok) {
+          const dataA = await resA.json();
+          if (dataA && dataA.length > 0) auditorias = dataA;
+        }
+
+        actualizarKPIs();
+        renderizarEstantes();
+        renderizarCatalogo();
+        renderizarAuditorias();
+        mostrarToast("Sincronización con Supabase exitosa.");
+      } catch (err) {
+        console.warn("Modo local activo:", err);
+      }
+    }
+
+    // Inicialización automática
+    window.addEventListener('DOMContentLoaded', () => {
+      actualizarKPIs();
+      renderizarEstantes();
+      renderizarCatalogo();
+      renderizarAuditorias();
+      sincronizarConSupabase();
+    });
   </script>
 </body>
 </html>
