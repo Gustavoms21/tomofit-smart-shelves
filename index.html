@@ -23,12 +23,36 @@
         </div>
         <div>
           <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
-            TomoFit <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Smart Shelves</span>
+            TomoFit <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Smart Shelves & Supply Chain</span>
           </h1>
-          <p class="text-xs text-slate-400">Control Inteligente de Inventario y Analítica Retail</p>
+          <p class="text-xs text-slate-400">Control de Anaqueles, Punto de Reorden y Analítica</p>
         </div>
       </div>
-      <div class="flex items-center gap-3">
+      
+      <!-- Controles de la derecha: Notificaciones y Supabase -->
+      <div class="flex items-center gap-3 relative">
+        
+        <!-- Campana de Notificaciones de Reorden (ROP) -->
+        <div class="relative">
+          <button onclick="togglePanelNotificaciones()" class="relative p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition" title="Notificaciones de Reorden">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+            <span id="badge-campana" class="hidden absolute -top-1 -right-1 px-1.5 py-0.2 text-[10px] font-bold bg-amber-500 text-slate-950 rounded-full border border-slate-950 animate-pulse">0</span>
+          </button>
+
+          <!-- Menú desplegable de Notificaciones de Reorden -->
+          <div id="dropdown-notificaciones" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 z-50">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+              <span class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-amber-400"></span> Alertas de Compra (ROP)
+              </span>
+              <span class="text-[11px] text-slate-400">Umbral: Bodega &le; 10 un.</span>
+            </div>
+            <div id="lista-alertas-reorden" class="divide-y divide-slate-800/60 max-h-72 overflow-y-auto my-2 text-xs">
+              <!-- Render dinámico de alertas de compra -->
+            </div>
+          </div>
+        </div>
+
         <span id="badge-conexion" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-950/70 text-emerald-400 border border-emerald-800">
           <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
           Supabase En Vivo
@@ -74,11 +98,11 @@
 
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
         <div class="flex items-center justify-between text-slate-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider">Ajuste Modelo IA</span>
-          <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+          <span class="text-xs font-semibold uppercase tracking-wider">Reorden Proveedor</span>
+          <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
         </div>
-        <div class="text-2xl font-black text-purple-400">R² 0.9895</div>
-        <p class="text-xs text-slate-500 mt-1">Precisión regresión (MAE: 0.06)</p>
+        <div id="kpi-reorden" class="text-2xl font-black text-rose-400">0</div>
+        <p class="text-xs text-slate-500 mt-1">Bodega crítica (&le; 10 un.)</p>
       </div>
     </section>
 
@@ -90,7 +114,7 @@
       </button>
       <button onclick="cambiarPestana('catalogo')" id="tab-btn-catalogo" class="tab-btn px-4 py-3 font-semibold text-sm text-slate-400 hover:text-slate-200 border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-        Catálogo & Ventas
+        Catálogo & Compras Proveedor
       </button>
       <button onclick="cambiarPestana('auditorias')" id="tab-btn-auditorias" class="tab-btn px-4 py-3 font-semibold text-sm text-slate-400 hover:text-slate-200 border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
@@ -116,15 +140,15 @@
       </div>
     </section>
 
-    <!-- PESTAÑA 2: CATÁLOGO Y REGISTRO DE VENTAS -->
+    <!-- PESTAÑA 2: CATÁLOGO Y COMPRAS AL PROVEEDOR -->
     <section id="tab-catalogo" class="tab-content hidden space-y-6">
       <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
         <div class="p-4 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div>
-            <h2 class="text-base font-semibold text-white">Catálogo de Suplementos Deportivos</h2>
-            <p class="text-xs text-slate-400">Actualizado con la base de datos relacional PostgreSQL de Supabase</p>
+            <h2 class="text-base font-semibold text-white">Catálogo y Gestión de Compras</h2>
+            <p class="text-xs text-slate-400">Punto de reorden automático cuando la bodega registra 10 o menos unidades</p>
           </div>
-          <span class="text-xs font-mono text-emerald-400 bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-800">4 Productos Activos</span>
+          <span class="text-xs font-mono text-emerald-400 bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-800">PostgreSQL Cloud Sincronizado</span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm text-slate-300">
@@ -132,11 +156,11 @@
               <tr>
                 <th class="px-6 py-3 font-medium">ID</th>
                 <th class="px-6 py-3 font-medium">Producto</th>
-                <th class="px-6 py-3 font-medium">Categoría</th>
-                <th class="px-6 py-3 font-medium">Precio Unitario</th>
+                <th class="px-6 py-3 font-medium">Precio Unit.</th>
                 <th class="px-6 py-3 font-medium">Vitrina</th>
                 <th class="px-6 py-3 font-medium">Bodega</th>
-                <th class="px-6 py-3 text-center font-medium">Operación</th>
+                <th class="px-6 py-3 font-medium">Estado ROP</th>
+                <th class="px-6 py-3 text-center font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody id="tabla-productos" class="divide-y divide-slate-800">
@@ -207,11 +231,13 @@
       "Content-Type": "application/json"
     };
 
-    // Estado local inicial garantizado (TomoFit Store)
+    const UMBRAL_REORDEN_BODEGA = 10; // Umbral de compra al laboratorio
+
+    // Estado local garantizado
     let productos = [
       { id: 1, nombre: "Proteína Whey Gold 2kg", categoria: "Proteínas", precio: 249.99, stock_bodega: 15, stock_vitrina: 4 },
       { id: 2, nombre: "Creatina Monohidrato 300g", categoria: "Rendimiento", precio: 89.50, stock_bodega: 20, stock_vitrina: 2 },
-      { id: 3, PreEntreno: "Pre-Entreno Nitro Blast", nombre: "Pre-Entreno Nitro Blast", categoria: "Energía", precio: 120.00, stock_bodega: 10, stock_vitrina: 1 },
+      { id: 3, nombre: "Pre-Entreno Nitro Blast", categoria: "Energía", precio: 120.00, stock_bodega: 10, stock_vitrina: 1 },
       { id: 4, nombre: "BCAA 2:1:1 400g", categoria: "Recuperación", precio: 95.00, stock_bodega: 12, stock_vitrina: 3 }
     ];
 
@@ -236,21 +262,33 @@
     function mostrarToast(mensaje, tipo = "exito") {
       const contenedor = document.getElementById("toast-container");
       const toast = document.createElement("div");
-      const esExito = tipo === "exito";
-      toast.className = `pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-xl border backdrop-blur transition-all duration-300 transform translate-y-2 opacity-0 ${
-        esExito ? 'bg-slate-900/90 text-emerald-400 border-emerald-800' : 'bg-slate-900/90 text-amber-400 border-amber-800'
-      }`;
-      toast.innerHTML = `
-        <span class="h-2 w-2 rounded-full ${esExito ? 'bg-emerald-400' : 'bg-amber-400'}"></span>
-        <span>${mensaje}</span>
-      `;
+      let estilo = "bg-slate-900/90 text-emerald-400 border-emerald-800";
+      let dot = "bg-emerald-400";
+
+      if (tipo === "alerta") {
+        estilo = "bg-slate-900/90 text-amber-400 border-amber-800";
+        dot = "bg-amber-400";
+      } else if (tipo === "peligro") {
+        estilo = "bg-slate-900/90 text-rose-400 border-rose-800";
+        dot = "bg-rose-400";
+      }
+
+      toast.className = `pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-xl border backdrop-blur transition-all duration-300 transform translate-y-2 opacity-0 ${estilo}`;
+      toast.innerHTML = `<span class="h-2 w-2 rounded-full ${dot}"></span><span>${mensaje}</span>`;
       contenedor.appendChild(toast);
-      setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
       setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-x-4');
         setTimeout(() => toast.remove(), 300);
       }, 3500);
     }
+
+    // Toggle Dropdown de Notificaciones
+    window.togglePanelNotificaciones = function() {
+      const menu = document.getElementById('dropdown-notificaciones');
+      menu.classList.toggle('hidden');
+    };
 
     // Cambiar Pestañas
     window.cambiarPestana = function(tabId) {
@@ -273,15 +311,53 @@
       }
     };
 
-    // Actualizar KPIs de la cabecera
+    // Actualizar KPIs y Alertas de Reorden
     function actualizarKPIs() {
       const totalIngresos = ventas.reduce((acc, v) => acc + parseFloat(v.total_pagado || 0), 0);
       const totalUnidades = ventas.reduce((acc, v) => acc + parseInt(v.cantidad || 0), 0);
-      const alertasCriticas = productos.filter(p => p.stock_vitrina <= 2).length;
+      const alertasCriticasVitrina = productos.filter(p => p.stock_vitrina <= 2).length;
+      
+      // Productos que requieren compra al proveedor (stock_bodega <= 10)
+      const productosReorden = productos.filter(p => p.stock_bodega <= UMBRAL_REORDEN_BODEGA);
 
       document.getElementById('kpi-ingresos').innerText = `S/ ${totalIngresos.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       document.getElementById('kpi-unidades').innerText = `${totalUnidades} un.`;
-      document.getElementById('kpi-alertas').innerText = alertasCriticas;
+      document.getElementById('kpi-alertas').innerText = alertasCriticasVitrina;
+      document.getElementById('kpi-reorden').innerText = productosReorden.length;
+
+      // Actualizar campana
+      const badgeCampana = document.getElementById('badge-campana');
+      const listaReorden = document.getElementById('lista-alertas-reorden');
+      
+      if (productosReorden.length > 0) {
+        badgeCampana.innerText = productosReorden.length;
+        badgeCampana.classList.remove('hidden');
+      } else {
+        badgeCampana.classList.add('hidden');
+      }
+
+      // Renderizar listado de notificaciones
+      listaReorden.innerHTML = '';
+      if (productosReorden.length === 0) {
+        listaReorden.innerHTML = `<div class="py-4 text-center text-slate-500">Bodega abastecida. Todos los productos superan las 10 unidades.</div>`;
+      } else {
+        productosReorden.forEach(item => {
+          const div = document.createElement('div');
+          div.className = "py-3 flex flex-col gap-1.5";
+          div.innerHTML = `
+            <div class="flex justify-between items-start">
+              <span class="font-bold text-white">${item.nombre}</span>
+              <span class="font-mono px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold">${item.stock_bodega} un. en bodega</span>
+            </div>
+            <p class="text-slate-400 text-[11px]">Umbral de seguridad rebasado (&le; 10). Se recomienda emitir orden de compra.</p>
+            <button onclick="reordenarLoteProveedor(${item.id})" class="mt-1 w-full py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-semibold border border-emerald-500/30 transition flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+              Solicitar Pedido Lote (+10 un.)
+            </button>
+          `;
+          listaReorden.appendChild(div);
+        });
+      }
     }
 
     // Renderizar Anaqueles Inteligentes
@@ -290,7 +366,8 @@
       contenedor.innerHTML = '';
 
       productos.forEach(prod => {
-        const necesitaReposicion = prod.stock_vitrina <= 2;
+        const necesitaReposicionVitrina = prod.stock_vitrina <= 2;
+        const requiereCompraProveedor = prod.stock_bodega <= UMBRAL_REORDEN_BODEGA;
         const faltantes = Math.max(0, 5 - prod.stock_vitrina);
 
         let slotsHtml = '';
@@ -310,7 +387,7 @@
 
         const card = document.createElement('div');
         card.className = `p-5 rounded-2xl border transition-all duration-200 ${
-          necesitaReposicion ? 'bg-amber-950/20 border-amber-700/50 shadow-md shadow-amber-950/30' : 'bg-slate-900 border-slate-800 shadow-sm'
+          requiereCompraProveedor ? 'bg-rose-950/10 border-rose-700/50' : (necesitaReposicionVitrina ? 'bg-amber-950/20 border-amber-700/50' : 'bg-slate-900 border-slate-800')
         }`;
 
         card.innerHTML = `
@@ -320,9 +397,9 @@
               <h3 class="font-bold text-white text-sm mt-1.5">${prod.nombre}</h3>
             </div>
             <span class="text-xs px-2.5 py-0.5 rounded-full font-bold border ${
-              necesitaReposicion ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+              necesitaReposicionVitrina ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
             }">
-              ${prod.stock_vitrina}/5
+              ${prod.stock_vitrina}/5 vitrina
             </span>
           </div>
 
@@ -331,26 +408,35 @@
           </div>
 
           <div class="text-xs text-slate-400 space-y-1.5 pt-3 border-t border-slate-800">
-            <div class="flex justify-between">
+            <div class="flex justify-between items-center">
               <span>Stock en Bodega:</span>
-              <span class="font-mono text-white font-semibold">${prod.stock_bodega} un.</span>
+              <span class="font-mono font-bold ${requiereCompraProveedor ? 'text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded border border-rose-800' : 'text-white'}">
+                ${prod.stock_bodega} un. ${requiereCompraProveedor ? '⚠️ Reorden' : ''}
+              </span>
             </div>
             <div class="flex justify-between">
-              <span>Unidades a reponer:</span>
+              <span>Faltan en vitrina:</span>
               <span class="font-mono ${faltantes > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${faltantes} un.</span>
             </div>
           </div>
 
           <div class="mt-4 flex gap-2">
             <button onclick="venderUno(${prod.id})" class="flex-1 py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition flex items-center justify-center gap-1 active:scale-95">
-              <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
               Vender 1
             </button>
             <button onclick="reponerVitrina(${prod.id})" class="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition flex items-center justify-center gap-1 active:scale-95">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
-              Reponer
+              Vitrina +
             </button>
           </div>
+          
+          ${requiereCompraProveedor ? `
+            <button onclick="reordenarLoteProveedor(${prod.id})" class="mt-2 w-full py-1.5 px-3 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[11px] font-bold transition flex items-center justify-center gap-1.5 active:scale-95">
+              <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+              Pedir Lote al Proveedor (+10 Bodega)
+            </button>
+          ` : ''}
         `;
         contenedor.appendChild(card);
       });
@@ -362,18 +448,28 @@
       tbody.innerHTML = '';
 
       productos.forEach(p => {
+        const requiereROP = p.stock_bodega <= UMBRAL_REORDEN_BODEGA;
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-800/40 transition";
         tr.innerHTML = `
           <td class="px-6 py-3 font-mono text-slate-400 font-bold">#${p.id}</td>
           <td class="px-6 py-3 font-medium text-white">${p.nombre}</td>
-          <td class="px-6 py-3 text-slate-400">${p.categoria}</td>
           <td class="px-6 py-3 font-mono text-emerald-400 font-bold">S/ ${parseFloat(p.precio).toFixed(2)}</td>
           <td class="px-6 py-3 font-mono font-bold ${p.stock_vitrina <= 2 ? 'text-amber-400' : 'text-slate-300'}">${p.stock_vitrina} un.</td>
-          <td class="px-6 py-3 font-mono text-slate-300">${p.stock_bodega} un.</td>
-          <td class="px-6 py-3 text-center">
-            <button onclick="venderUno(${p.id})" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs transition active:scale-95">
-              Venta Directa
+          <td class="px-6 py-3 font-mono font-bold ${requiereROP ? 'text-rose-400' : 'text-slate-300'}">${p.stock_bodega} un.</td>
+          <td class="px-6 py-3">
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${
+              requiereROP ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+            }">
+              ${requiereROP ? '⚠️ Reorden Necesario' : 'Óptimo'}
+            </span>
+          </td>
+          <td class="px-6 py-3 text-center space-x-2">
+            <button onclick="venderUno(${p.id})" class="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs transition active:scale-95">
+              Vender
+            </button>
+            <button onclick="reordenarLoteProveedor(${p.id})" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition active:scale-95" title="Pedir +10 frascos a bodega">
+              +10 Bodega
             </button>
           </td>
         `;
@@ -404,7 +500,6 @@
 
     // Renderizar Gráficos con Chart.js
     function renderizarGraficos() {
-      // 1. Gráfico de Ventas
       const ctx1 = document.getElementById('chartVentas')?.getContext('2d');
       if (ctx1) {
         if (chart1) chart1.destroy();
@@ -439,7 +534,6 @@
         });
       }
 
-      // 2. Gráfico de Días de Cobertura (ML)
       const ctx2 = document.getElementById('chartCobertura')?.getContext('2d');
       if (ctx2) {
         if (chart2) chart2.destroy();
@@ -475,11 +569,10 @@
     window.venderUno = async function(productoId) {
       const prod = productos.find(p => p.id === productoId);
       if (!prod || prod.stock_vitrina <= 0) {
-        mostrarToast("¡Quiebre en vitrina! Debe reponer antes de vender.", "alerta");
+        mostrarToast("¡Quiebre visual! Reponer la vitrina antes de despachar.", "alerta");
         return;
       }
 
-      // Actualizar estado local
       prod.stock_vitrina -= 1;
       const ventaNueva = {
         id: ventas.length + 1,
@@ -493,9 +586,9 @@
       actualizarKPIs();
       renderizarEstantes();
       renderizarCatalogo();
-      mostrarToast(`Venta exitosa: 1x ${prod.nombre} (S/ ${prod.precio.toFixed(2)})`);
+      mostrarToast(`Venta: 1x ${prod.nombre} (S/ ${prod.precio.toFixed(2)})`);
 
-      // Persistir en Supabase en segundo plano
+      // Persistir en Supabase
       try {
         await Promise.all([
           fetch(`${SUPABASE_URL}/rest/v1/productos?id=eq.${productoId}`, {
@@ -510,11 +603,11 @@
           })
         ]);
       } catch (e) {
-        console.warn("Sincronización en segundo plano:", e);
+        console.warn("Sincronización venta:", e);
       }
     };
 
-    // ACCIÓN: Reponer Vitrina a 5 unidades
+    // ACCIÓN: Reponer Vitrina a 5 unidades desde Bodega
     window.reponerVitrina = async function(productoId) {
       const prod = productos.find(p => p.id === productoId);
       const faltantes = 5 - prod.stock_vitrina;
@@ -525,20 +618,23 @@
       }
 
       if (prod.stock_bodega < faltantes) {
-        mostrarToast("Stock en bodega insuficiente para completar.", "alerta");
+        mostrarToast("Stock en bodega insuficiente para rellenar el anaquel.", "peligro");
         return;
       }
 
-      // Actualizar local
       prod.stock_vitrina += faltantes;
       prod.stock_bodega -= faltantes;
 
       actualizarKPIs();
       renderizarEstantes();
       renderizarCatalogo();
-      mostrarToast(`Anaquel reabastecido: +${faltantes} unidades añadidas.`);
+      mostrarToast(`Anaquel completado (+${faltantes} unidades movidas de bodega).`);
 
-      // Persistir en Supabase
+      // Notificar si la bodega acaba de cruzar el umbral de reorden
+      if (prod.stock_bodega <= UMBRAL_REORDEN_BODEGA) {
+        mostrarToast(`⚠️️ ATENCIÓN: Bodega de ${prod.nombre} en nivel crítico (${prod.stock_bodega} un.).`, "peligro");
+      }
+
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/productos?id=eq.${productoId}`, {
           method: 'PATCH',
@@ -547,6 +643,31 @@
         });
       } catch (e) {
         console.warn("Error persistiendo reposición:", e);
+      }
+    };
+
+    // ACCIÓN: Reordenar Lote al Proveedor (+10 a bodega)
+    window.reordenarLoteProveedor = async function(productoId) {
+      const prod = productos.find(p => p.id === productoId);
+      if (!prod) return;
+
+      const loteCompra = 10;
+      prod.stock_bodega += loteCompra;
+
+      actualizarKPIs();
+      renderizarEstantes();
+      renderizarCatalogo();
+      mostrarToast(`Orden de compra recibida: +${loteCompra} frascos ingresados a Bodega (${prod.nombre}).`);
+
+      // Persistir en Supabase
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/productos?id=eq.${productoId}`, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify({ stock_bodega: prod.stock_bodega })
+        });
+      } catch (e) {
+        console.warn("Error reorden proveedor:", e);
       }
     };
 
@@ -577,7 +698,6 @@
       actualizarKPIs();
       mostrarToast(`Auditoría completada: Se registraron ${nuevosRegistros.length} alertas.`, "alerta");
 
-      // Persistir en Supabase
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/control_estantes`, {
           method: 'POST',
@@ -615,7 +735,6 @@
         renderizarEstantes();
         renderizarCatalogo();
         renderizarAuditorias();
-        mostrarToast("Sincronización con Supabase exitosa.");
       } catch (err) {
         console.warn("Modo local activo:", err);
       }
